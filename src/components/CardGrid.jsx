@@ -1,14 +1,14 @@
 import './Cardgrid.css';
 
-const CardGrid = ({photos, clicked}) => {
+const CardGrid = ({photos, clicked, status}) => {
   const link = 'https://images.dog.ceo/breeds/'
-  console.log(photos);
   return (
     <div className='cardGrid'>
         {
         photos.map(image =>{
             const id = image.slice(link.length)
-            return <img className='card' src={image} key={id} onClick={() => clicked(image)}></img>
+            const stat = status.includes(image);
+            return <img className='card' data-clicked={stat} src={image}  key={id} onClick={() => clicked(image)}></img>
           })
     }
     </div>

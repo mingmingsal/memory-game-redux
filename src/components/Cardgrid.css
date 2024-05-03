@@ -6,5 +6,11 @@
 .card {
     aspect-ratio: 1/1;
     object-fit: cover;
-    max-width: 300px;
+    width: 300px;
+}
+img[data-clicked='true']{
+    border: 5px solid red;
+}
+img[data-clicked='false']{
+    border: 5px solid blue;
 }
