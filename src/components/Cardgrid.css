@@ -1,0 +1,10 @@
+.cardGrid {
+    display: grid;
+    grid-template-columns: 300px 300px 300px;
+    gap: 1vw;
+}
+.card {
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    max-width: 300px;
+}
