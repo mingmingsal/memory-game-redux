@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { loadImage, fetchData } from './components/API';
 import CardGrid from './components/CardGrid';
+import chooseRandom from './components/ChooseRandom';
 function App() {
   const [photos, setPhotos] = useState(null);
   const [photosLoaded, setPhotosLoaded] = useState(null);
@@ -9,7 +10,7 @@ function App() {
   const [clicked, setClicked] = useState([]);
   const [score, setScore] = useState(0);
   const [win, setWin] = useState(false);
-
+  const menu = useRef(null);
   //Onload, fetch dogs and store in state.
   useEffect(() => {
     function displayDogs(data) {
@@ -17,7 +18,7 @@ function App() {
         .then(() => {
           setPhotosLoaded(true);
           setPhotos(data);
-          chooseRandom(data, clicked);
+          setChosen(chooseRandom(data, clicked));
         })
         .catch(err => {
           setPhotosLoaded(false);
@@ -33,40 +34,7 @@ function App() {
     fetchData().then(displayDogs).catch(onDisplayError);
   }, [])
 
-  function chooseRandom(data, curClick) {
-    console.table(curClick);
-    const size = 5;
-    let available = [...data.message];
-    const photosPicked = [];
-    const photosClicked = [...curClick]
-    //console.log(photosClicked);
-    const notPicked = available.filter(e => {
-      return !photosClicked.includes(e);
-    })
-    if (notPicked.length >= size) {
-      for (let i = 0; i < size; i++) {
-        let random = Math.floor(Math.random() * notPicked.length);
-        photosPicked.push(notPicked[random]);
-        notPicked.splice(random, 1);  
-      }
-    }
-    else {
-      const l = notPicked.length;
-      for (let i = 0; i < l; i++) {
-        let random = Math.floor(Math.random() * notPicked.length);
-        photosPicked.push(notPicked[random]);
-        notPicked.splice(random, 1);
-      }
-      for (let i = 0; i < size - l; i++) {
-        let random = Math.floor(Math.random() * photosClicked.length);
-        photosPicked.push(photosClicked[random]);
-        photosClicked.splice(random, 1);
-      }
-    }
-
-    setChosen(photosPicked);
-    console.table(photosPicked);
-  }
+  
 
   function cardClicked(id) {
     const newClicked = [...clicked, id];
@@ -77,7 +45,7 @@ function App() {
     else {
       setClicked(newClicked);
       setScore(n => n + 1);
-      chooseRandom(photos, newClicked);
+      setChosen(chooseRandom(photos, newClicked));
     }
   }
   function winGame() {
@@ -87,8 +55,15 @@ function App() {
   function gameOver() {
     console.log('lose')
     setScore(0);
-    setClicked([], chooseRandom(photos));
+    setClicked([]);
+    setChosen(chooseRandom(photos,[]));
 
+  }
+  function restart(){
+    setScore(0);
+    setClicked([]);
+    setChosen(chooseRandom(photos,[]));
+    setWin(false);
   }
   return (
     <>
@@ -97,10 +72,9 @@ function App() {
         photosLoaded && <CardGrid photos={chosen} clicked={cardClicked} status={clicked} />
       }
       {
-        win &&
-        <dialog>
-          <h1>you win!</h1>
-          <button>Try again?</button>
+        <dialog open={win} >
+          <p>you win!</p>
+          <button ref={menu} onClick={restart}>Try again?</button>
         </dialog>
       }
     </>
