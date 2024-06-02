@@ -1,16 +1,18 @@
 .cardGrid {
     display: grid;
-    grid-template-columns: 300px 300px 300px 300px 300px;
-    gap: 1vw;
+    width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
 }
 .card {
     aspect-ratio: 1/1;
     object-fit: cover;
-    width: 300px;
 }
-img[data-clicked='true']{
-    border: 5px solid red;
+.cardGrid img{
+    width: 100%;
 }
-img[data-clicked='false']{
-    border: 5px solid blue;
-}
+@media only screen and (max-width: 500px) {
+    .cardGrid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+  }

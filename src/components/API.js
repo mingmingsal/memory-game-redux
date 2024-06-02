@@ -1,6 +1,6 @@
 export function fetchData(){
     return new Promise(function(resolve,reject){{
-      fetch('https://dog.ceo/api/breeds/image/random/30')
+      fetch('https://dog.ceo/api/breeds/image/random/20')
       .then(response => response.json())
       .then(data => resolve(data))
     }})

@@ -1,28 +1,34 @@
-import { useState, useEffect, useRef } from 'react'
-import './App.css'
-import { loadImage, fetchData } from './components/API';
-import CardGrid from './components/CardGrid';
-import chooseRandom from './components/ChooseRandom';
+import { useState, useEffect, useRef } from "react";
+import "./App.css";
+import { loadImage, fetchData } from "./components/API";
+import CardGrid from "./components/CardGrid";
+import chooseRandom from "./components/ChooseRandom";
 function App() {
   const [photos, setPhotos] = useState(null);
+  const [easy, setEasy] = useState(false);
   const [photosLoaded, setPhotosLoaded] = useState(null);
   const [chosen, setChosen] = useState(null);
   const [clicked, setClicked] = useState([]);
   const [score, setScore] = useState(0);
+  const [highscore, setHighScore] = useState(0);
   const [win, setWin] = useState(false);
+  const [dogs, setDogs] = useState(0);
   const menu = useRef(null);
   //Onload, fetch dogs and store in state.
   useEffect(() => {
+    let ignore = false;
     function displayDogs(data) {
-      Promise.all(data.message.map(image => loadImage(image)))
+      Promise.all(data.message.map((image) => loadImage(image)))
         .then(() => {
-          setPhotosLoaded(true);
-          setPhotos(data);
-          setChosen(chooseRandom(data, clicked));
+          if (!ignore) {
+            setPhotosLoaded(true);
+            setPhotos(data);
+            setChosen(chooseRandom(data, []));
+          }
         })
-        .catch(err => {
+        .catch((err) => {
           setPhotosLoaded(false);
-          console.log('failed to load images', err)
+          console.log("failed to load images", err);
         });
     }
 
@@ -32,53 +38,86 @@ function App() {
     }
 
     fetchData().then(displayDogs).catch(onDisplayError);
-  }, [])
-
-  
+    return () => {
+      ignore = true;
+    };
+  }, [dogs]);
 
   function cardClicked(id) {
     const newClicked = [...clicked, id];
-    
+
     let currentscore = score + 1;
     if (clicked.includes(id)) gameOver();
     else if (currentscore === photos.message.length) winGame();
     else {
       setClicked(newClicked);
-      setScore(n => n + 1);
+      setScore((n) => n + 1);
       setChosen(chooseRandom(photos, newClicked));
     }
   }
   function winGame() {
-    console.log('win')
     setWin(true);
+    if (score > highscore) setHighScore(score);
+    menu.current.showModal();
   }
   function gameOver() {
-    console.log('lose')
-    setScore(0);
-    setClicked([]);
-    setChosen(chooseRandom(photos,[]));
-
-  }
-  function restart(){
-    setScore(0);
-    setClicked([]);
-    setChosen(chooseRandom(photos,[]));
     setWin(false);
+    if (score > highscore) setHighScore(score);
+    menu.current.showModal();
+  }
+  function restart() {
+    setToZero();
+    setChosen(chooseRandom(photos, []));
+    menu.current.close();
+  }
+  function newDogs() {
+    setToZero();
+    setPhotosLoaded(false);
+    menu.current.close();
+  }
+  function setToZero() {
+    setScore(0);
+    setClicked([]);
+    setWin(false);
+
+    setDogs(dogs + 1);
+  }
+  function easyMode() {
+    setEasy(!easy);
   }
   return (
-    <>
-      <h1>{score}</h1>
+    <div className="game">
+      {photosLoaded && (
+        <>
+          <h1>Dog Memory Game</h1>
+          <h2>Click on a Dog that has NOT been Clicked Yet</h2>
+          <div className="options">
+          <button onClick={newDogs}>New Dogs!</button>
+          <button onClick={easyMode}>Easy Mode</button>
+          </div>
+          <h1>{score}</h1>
+          <CardGrid
+            photos={chosen}
+            clicked={cardClicked}
+            status={clicked}
+            easyMode={easy}
+          />
+        </>
+      )}
+      {!photosLoaded && <h1>Loading Doggies...</h1>}
+
       {
-        photosLoaded && <CardGrid photos={chosen} clicked={cardClicked} status={clicked} />
-      }
-      {
-        <dialog open={win} >
-          <p>you win!</p>
-          <button ref={menu} onClick={restart}>Try again?</button>
+        <dialog ref={menu}>
+          <h3>{!win ? `That Dog's Already Clicked!` : `You Win!`}</h3>
+          <p>Score:{score}</p>
+          <p>Highest Score:{highscore}</p>
+          <button onClick={restart}>Try again?</button>
+          <br />
+          <button onClick={newDogs}>New Dogs!</button>
         </dialog>
       }
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
